@@ -4,6 +4,7 @@
 import pyaudio
 import wave
 import os
+import matplotlib.pyplot as plt
 
 
 input_filename = "input.wav" # 麦克风采集的语音输入
@@ -32,55 +33,75 @@ class Audio(object):
                         input=True,
                         frames_per_buffer=self.CHUNK)
         print("*" * 10, "开始录音：请在5秒内输入语音")
-        frames = []
+        self.frames = []
         for i in range(0, int(self.RATE / self.CHUNK * self.RECORD_SECONDS)):
             data = self.stream.read(self.CHUNK)
-            frames.append(data)
+            self.frames.append(data)
         print("*" * 10, "录音结束\n")
 
 
+        self.stream.stop_stream()
+        self.stream.close()
+        pa.terminate()
 
+        wf = wave.open(self.WAVE_OUTPUT_FILENAME, 'wb')
 
-def get_audio(filepath):
-    aa = str(input("是否开始录音？   （Y/N）"))
-    if aa == str("Y") :
-        CHUNK = 256
-        FORMAT = pyaudio.paInt16
-        CHANNELS = 1                # 声道数
-        RATE = 11025                # 采样率
-        RECORD_SECONDS = 5
-        WAVE_OUTPUT_FILENAME = filepath
-        p = pyaudio.PyAudio()
-
-        stream = p.open(format=FORMAT,
-                        channels=CHANNELS,
-                        rate=RATE,
-                        input=True,
-                        frames_per_buffer=CHUNK)
-
-        print("*"*10, "开始录音：请在5秒内输入语音")
-        frames = []
-        for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-            data = stream.read(CHUNK)
-            frames.append(data)
-        print("*"*10, "录音结束\n")
-
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
-
-        wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-
-        wf.setnchannels(CHANNELS)
-        wf.setsampwidth(p.get_sample_size(FORMAT))
-        wf.setframerate(RATE)
-        wf.writeframes(b''.join(frames))
+        wf.setnchannels(self.CHANNELS)
+        wf.setsampwidth(pa.get_sample_size(self.FORMAT))
+        wf.setframerate(self.RATE)
+        wf.writeframes(b''.join(self.frames))
         wf.close()
-    elif aa == str("N"):
-        exit()
-    else:
-        print("无效输入，请重新选择")
-        get_audio(in_path)
+
+    def print(self):
+        for i in self.frames:
+            print(i)
+
+
+
+
+# def get_audio(filepath):
+#     aa = str(input("是否开始录音？   （Y/N）"))
+#     if aa == str("Y") :
+#         CHUNK = 256
+#         FORMAT = pyaudio.paInt16
+#         CHANNELS = 1                # 声道数
+#         RATE = 11025                # 采样率
+#         RECORD_SECONDS = 5
+#         WAVE_OUTPUT_FILENAME = filepath
+#         p = pyaudio.PyAudio()
+#
+#         stream = p.open(format=FORMAT,
+#                         channels=CHANNELS,
+#                         rate=RATE,
+#                         input=True,
+#                         frames_per_buffer=CHUNK)
+#
+#         print("*"*10, "开始录音：请在5秒内输入语音")
+#         frames = []
+#         for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+#             data = stream.read(CHUNK)
+#             frames.append(data)
+#         print("*"*10, "录音结束\n")
+#
+#         stream.stop_stream()
+#         stream.close()
+#         p.terminate()
+#
+#         wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+#
+#         wf.setnchannels(CHANNELS)
+#         wf.setsampwidth(p.get_sample_size(FORMAT))
+#         wf.setframerate(RATE)
+#         wf.writeframes(b''.join(frames))
+#         wf.close()
+#     elif aa == str("N"):
+#         exit()
+#     else:
+#         print("无效输入，请重新选择")
+#         get_audio(in_path)
 
 if __name__ =='__main__':
-    get_audio(in_path)
+    au = Audio(in_path)
+    au.get_audio()
+    au.print()
+
