@@ -4,6 +4,7 @@
 import pyaudio
 import wave
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -52,9 +53,35 @@ class Audio(object):
         wf.writeframes(b''.join(self.frames))
         wf.close()
 
-    def print(self):
-        for i in self.frames:
-            print(i)
+    def wavread(self,path=''):
+        if path == '':
+            path = self.WAVE_OUTPUT_FILENAME
+        wavfile = wave.open(path, "rb")
+        params = wavfile.getparams()
+
+        framesra, frameswav = params[2], params[3]
+
+        datawav = wavfile.readframes(frameswav)
+        wavfile.close()
+        datause = np.fromstring(datawav, dtype=np.short)
+        print(datause.shape)
+        datause.shape = -1, 1# 单声道
+        datause = datause.T
+        print(datause.shape)
+        time = np.arange(0, frameswav) * (1.0 / framesra)
+        return datause, time
+
+    def print_wave(self):# 输出波形图
+        #path = input("The Path is:")
+        wavdata, wavtime = self.wavread()
+        plt.title("wav's Frames")
+        plt.subplot(211)
+        plt.plot(wavtime, wavdata[0], color='green')
+        # plt.subplot(212)
+        # plt.plot(wavtime, wavdata[1])
+        plt.show()
+
+
 
 
 
@@ -103,5 +130,5 @@ class Audio(object):
 if __name__ =='__main__':
     au = Audio(in_path)
     au.get_audio()
-    au.print()
+    au.print_wave()
 
